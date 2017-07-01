@@ -144,6 +144,8 @@ $$
     setPart.push('"version" = $' + i++);
     params.push(old.version + 1);
 
+    setPart.push('"updated" = now()');
+
     var query = 'update item set ' + setPart.join(', ') + ' where id = $1 returning *';
 
     result.item = plv8.execute(query, params)[0];
