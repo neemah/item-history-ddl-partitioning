@@ -46,7 +46,7 @@ create table if not exists item_history (
     primary key(id, version)     -- !!!!
 ) inherits (item_skel);
 
-create index item_history__id_idx on card_history (id);
+create index item_history__id_idx on item_history (id);
 ```
 
 ```
