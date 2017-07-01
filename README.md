@@ -1,7 +1,12 @@
 ## Item with history
 
-create extension if not exists plv8;
+### Prepare DB
 
+```
+create extension if not exists plv8;
+```
+
+```
 create table if not exists _created (
     created     timestamptz not null default now()
 );
@@ -12,38 +17,48 @@ create table if not exists _updated (
 
 create table if not exists _timestampable (
 ) inherits (_created, _updated);
+```
 
-create table if not exists _archivable (
-    archived    boolean NOT NULL DEFAULT false
-);
-
+```
 create table if not exists some_table (
   id  serial not null,
   name varchar (1024) not null,
   primary key(id)
 );
+```
 
+```
 insert into some_table (name) values ('helo der');
+```
 
+```
 create table if not exists item_skel (
     id                          int not null,
     title                       varchar(1024) not null,
     version                     int not null default 1,
     some_external_id            int not null -- NO REFERENCE KEY HERE!
-) inherits (_timestampable, _archivable);
+) inherits (_timestampable);
+```
 
+```
 create table if not exists item_history (
     some_external_id            int not null references "some_table" on delete restrict,
     primary key(id, version)     -- !!!!
 ) inherits (item_skel);
 
 create index item_history__id_idx on card_history (id);
+```
 
+```
 create table if not exists item (
     id                          serial PRIMARY KEY not null,
     some_external_id            int not null references "some_table" on delete restrict
 ) inherits (item_skel);
+```
 
+### Prepare functions to insert and update
+
+```
 create or replace function item_insert(fieldz jsonb) RETURNS json AS
 $$
     var __parseJSONB = function (data) {
@@ -79,7 +94,9 @@ $$
     return result;
 $$
 language plv8;
+```
 
+```
 create or replace function item_update(id int, fieldz jsonb) RETURNS json AS
 $$
   var __parseJSONB = function (data) {
@@ -136,8 +153,11 @@ $$
   return result;
 $$
 language plv8;
+```
 
+### Do some queries
 
+```
 select item_insert('{"title":"abracadabra", "some_external_id": 1}');
 select item_update(1, '{"title":"cadabrararar"}');
 
@@ -160,3 +180,4 @@ select * from item_history where id = 1;
 
 -- actual version:
 select * from item where id = 1;
+```
